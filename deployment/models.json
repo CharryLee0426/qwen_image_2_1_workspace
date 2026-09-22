@@ -1,0 +1,26 @@
+[
+  {
+    "repository": "0xSojalSec/Qwen-Image-2.1-Uncensored-GGUF",
+    "revision": "242be4d1f70cc26fa45773c452f81980ed656e2e",
+    "file": "qwen-image-2.1-Q4_K_M.gguf",
+    "path": "ComfyUI/models/diffusion_models/qwen-image-2.1-Q4_K_M.gguf",
+    "size": 4604557984,
+    "sha256": "833439e91bc1152d28f37aa198c7f6f4218b7de95754c2f7a318a2422ab4b2f8"
+  },
+  {
+    "repository": "Comfy-Org/Qwen-Image-2.1",
+    "revision": "ace0edeb3791a594ddfa36ed5f41a178a394e921",
+    "file": "text_encoders/qwen3vl_8b_bf16.safetensors",
+    "path": "ComfyUI/models/text_encoders/qwen3vl_8b_bf16.safetensors",
+    "size": 17534334616,
+    "sha256": "68bdc82bc1b66851162ae656225e7e2068166b603db19bd5d5a3b90eb12669a9"
+  },
+  {
+    "repository": "Comfy-Org/Qwen-Image-2.1",
+    "revision": "ace0edeb3791a594ddfa36ed5f41a178a394e921",
+    "file": "vae/qwen_image_2.1_vae_bf16.safetensors",
+    "path": "ComfyUI/models/vae/qwen_image_2.1_vae_bf16.safetensors",
+    "size": 675509688,
+    "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9"
+  }
+]

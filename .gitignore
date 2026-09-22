@@ -1,0 +1,25 @@
+# Local dependencies, model weights, and generated images
+/ComfyUI/
+/.venv/
+node_modules/
+.next/
+.data/
+
+# Runtime state and local verification artifacts
+/logs/
+/deployment/*.pid
+/deployment/*test*.json
+/deployment/*-job.json
+/deployment/ui-test-prompt-id.txt
+/deployment/webui-verification.json
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+.DS_Store
+
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.key

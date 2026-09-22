@@ -1,0 +1,36 @@
+{
+  "comfyui_commit": "e638023d54497dbe0579565e5de4bb7076899592",
+  "gguf_loader_commit": "6ea2651e7df66d7585f6ffee804b20e92fb38b8a",
+  "local_patch": "deployment/comfyui-gguf-qwen21.patch",
+  "host": "Apple M4 Pro, 64 GB unified memory, macOS 26.6.2",
+  "url": "http://127.0.0.1:8188",
+  "runtime": "Python 3.12.13; PyTorch 2.14.0; Apple MPS diffusion; CPU text encoder and VAE",
+  "model_load_check": {
+    "architecture": "QwenImage21",
+    "layers": 32,
+    "channels": 64,
+    "dtype": "bfloat16",
+    "result": "passed"
+  },
+  "checksums_verified": true,
+  "verified_at": "2026-09-22T06:16:25.518858+00:00",
+  "generation_test": {
+    "status": "success",
+    "prompt_id": "542b6721-9214-41a8-ab96-30ee59bbae9c",
+    "width": 1024,
+    "height": 1024,
+    "steps": 25,
+    "seed": 42,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "cfg": 1,
+    "elapsed_seconds": 374.61,
+    "visual_inspection": "passed; fox and blue teapot in watercolor garden"
+  },
+  "ui_test": {
+    "status": "success",
+    "prompt_id": "41ac73e2-7344-4c6c-b358-cd870de1f02f",
+    "cached_generation": true,
+    "output": "ComfyUI/output/Qwen_Image_2.1_Q4_K_M_00001.png"
+  }
+}

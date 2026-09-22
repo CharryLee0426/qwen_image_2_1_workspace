@@ -1,0 +1,599 @@
+{
+  "id": "7316ac69-a18a-4830-90e0-e7a57663a4fe",
+  "revision": 0,
+  "last_node_id": 500,
+  "last_link_id": 682,
+  "nodes": [
+    {
+      "id": 451,
+      "type": "UnetLoaderGGUF",
+      "pos": [
+        20,
+        640
+      ],
+      "size": [
+        380,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            675
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UnetLoaderGGUF"
+      },
+      "widgets_values": [
+        "qwen-image-2.1-Q4_K_M.gguf"
+      ],
+      "title": "Qwen Image 2.1 \u2014 Q4_K_M"
+    },
+    {
+      "id": 452,
+      "type": "TextEncodeQwenImage21",
+      "pos": [
+        20,
+        20
+      ],
+      "size": [
+        400,
+        340
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 647
+        },
+        {
+          "localized_name": "image_1",
+          "name": "images.image_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 681
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": 682
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "negative_prompt",
+          "name": "negative_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "negative_prompt"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            653
+          ]
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            655
+          ]
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": [
+            654
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TextEncodeQwenImage21"
+      },
+      "widgets_values": [
+        "Change the blue teapot to a red teapot. Keep the fox and watercolor style.",
+        "",
+        1024
+      ]
+    },
+    {
+      "id": 453,
+      "type": "CLIPLoader",
+      "pos": [
+        450,
+        640
+      ],
+      "size": [
+        400,
+        170
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "clip_name",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            647
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader",
+        "models": [
+          {
+            "name": "qwen3vl_8b_bf16.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/ace0edeb3791a594ddfa36ed5f41a178a394e921/text_encoders/qwen3vl_8b_bf16.safetensors",
+            "directory": "text_encoders"
+          }
+        ]
+      },
+      "widgets_values": [
+        "qwen3vl_8b_bf16.safetensors",
+        "qwen_image",
+        "default"
+      ]
+    },
+    {
+      "id": 454,
+      "type": "VAELoader",
+      "pos": [
+        900,
+        640
+      ],
+      "size": [
+        360,
+        110
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vae_name",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            649,
+            682
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "models": [
+          {
+            "name": "qwen_image_2.1_vae_bf16.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors",
+            "directory": "vae"
+          }
+        ]
+      },
+      "widgets_values": [
+        "qwen_image_2.1_vae_bf16.safetensors"
+      ]
+    },
+    {
+      "id": 456,
+      "type": "EmptyLatentImage",
+      "pos": [
+        460,
+        450
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 2,
+      "inputs": [
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ]
+    },
+    {
+      "id": 457,
+      "type": "VAEDecode",
+      "pos": [
+        820,
+        20
+      ],
+      "size": [
+        240,
+        100
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 651
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 649
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            680
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      }
+    },
+    {
+      "id": 458,
+      "type": "KSampler",
+      "pos": [
+        460,
+        20
+      ],
+      "size": [
+        300,
+        340
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 675
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 653
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 655
+        },
+        {
+          "localized_name": "latent_image",
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 654
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            651
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        42,
+        "fixed",
+        25,
+        2,
+        "euler",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 461,
+      "type": "SaveImageAdvanced",
+      "pos": [
+        820,
+        180
+      ],
+      "size": [
+        450,
+        380
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 680
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {},
+      "widgets_values": [
+        "Qwen_Image_2.1_Q4_K_M",
+        "png",
+        "8-bit",
+        "sRGB"
+      ]
+    },
+    {
+      "id": 500,
+      "type": "LoadImage",
+      "pos": [
+        20,
+        920
+      ],
+      "size": [
+        380,
+        380
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            681
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "qwen-studio/7db29985-1769-4f0f-ab9c-bae93df81f82-1.png",
+        "image"
+      ]
+    }
+  ],
+  "links": [
+    [
+      647,
+      453,
+      0,
+      452,
+      0,
+      "CLIP"
+    ],
+    [
+      649,
+      454,
+      0,
+      457,
+      1,
+      "VAE"
+    ],
+    [
+      651,
+      458,
+      0,
+      457,
+      0,
+      "LATENT"
+    ],
+    [
+      653,
+      452,
+      0,
+      458,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      654,
+      452,
+      2,
+      458,
+      3,
+      "LATENT"
+    ],
+    [
+      655,
+      452,
+      1,
+      458,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      675,
+      451,
+      0,
+      458,
+      0,
+      "MODEL"
+    ],
+    [
+      680,
+      457,
+      0,
+      461,
+      0,
+      "IMAGE"
+    ],
+    [
+      681,
+      500,
+      0,
+      452,
+      1,
+      "IMAGE"
+    ],
+    [
+      682,
+      454,
+      0,
+      452,
+      2,
+      "VAE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.65,
+      "offset": [
+        100,
+        160
+      ]
+    }
+  },
+  "version": 0.4
+}
