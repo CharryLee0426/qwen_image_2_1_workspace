@@ -16,11 +16,11 @@ For development, stop the production frontend first, then `npm run dev`. `COMFY_
 
 ## Behavior
 
-- Positive and negative text prompts, with optional reference images.
+- A photo-oriented positive prompt cue and a predefined negative prompt. The negative prompt starts locked; unlock it to edit, lock it again to protect an edit, or use Reset to restore the photo preset and lock it.
 - A nonempty negative prompt activates CFG 2; otherwise CFG 1 follows Qwen's default path. The negative branch is connected in both modes.
 - Up to 10 PNG, JPEG, or WebP reference images, each up to 20 MB. Uploaded files are decoded, orientation-corrected, and stored as PNGs in ComfyUI's `input/qwen-studio/` directory.
 - Reference mode connects both the VAE and vision inputs to `TextEncodeQwenImage21`. The first reference determines the output aspect ratio; all references retain their upload order.
-- Fast: 512-pixel target, 12 steps. Standard: 1024, 25 steps. High: 2048, 40 steps. In reference mode, resolution is a square pixel budget, with the source aspect ratio preserved.
+- Fast: 512-pixel target, 20 steps. Standard: 1024, 40 steps. High: 2048, 40 steps. In reference mode, resolution is a square pixel budget, with the source aspect ratio preserved.
 - Actual sampling progress comes from ComfyUI's WebSocket. Job completion comes from its history API. Cancelling uses the specific prompt ID and never globally interrupts another workflow.
 - Generation records persist in `.data/jobs/`. Images remain in `../ComfyUI/output/QwenStudio/`. Draft prompts/settings persist in browser storage. Active generations and their references recover after refresh.
 - The library contains actual local generations, including the original verified installation image. There are no mock outputs or external image services.

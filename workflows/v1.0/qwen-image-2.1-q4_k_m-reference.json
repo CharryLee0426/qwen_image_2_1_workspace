@@ -35,7 +35,7 @@
       "widgets_values": [
         "qwen-image-2.1-Q4_K_M.gguf"
       ],
-      "title": "Qwen Image 2.1 Photo v1.1 — Q4_K_M"
+      "title": "Qwen Image 2.1 \u2014 Q4_K_M"
     },
     {
       "id": 452,
@@ -121,8 +121,8 @@
         "Node name for S&R": "TextEncodeQwenImage21"
       },
       "widgets_values": [
-        "Transform the supplied scene into a natural photograph of a red fox beside a blue ceramic teapot in a garden. Keep the main subjects and composition. Use soft morning daylight, believable fur and ceramic texture, and natural shadows.",
-        "Non-photographic media: illustration, painting, drawing, cartoon, anime, 3D render, CGI.\nArtificial finish: plastic or waxy surfaces, over-smoothed skin, excessive HDR, sharpening halos, unnatural saturation.\nGeneration defects: distorted anatomy, extra or fused fingers, duplicated limbs, repeated objects, warped geometry, banding, compression artifacts.\nUnwanted overlays: watermark, logo, border, frame, unintended text.",
+        "Change the blue teapot to a red teapot. Keep the fox and watercolor style.",
+        "",
         1024
       ]
     },
@@ -421,7 +421,7 @@
       "widgets_values": [
         42,
         "fixed",
-        40,
+        25,
         2,
         "euler",
         "simple",
@@ -458,7 +458,7 @@
       ],
       "properties": {},
       "widgets_values": [
-        "Qwen_Image_2.1_Photo_v1.1",
+        "Qwen_Image_2.1_Q4_K_M",
         "png",
         "8-bit",
         "sRGB"

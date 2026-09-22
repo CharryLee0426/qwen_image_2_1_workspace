@@ -1,8 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
+import { PHOTO_NEGATIVE_PROMPT } from "../src/lib/photo-preset";
 import { buildWorkflow, validateInput } from "../src/lib/workflow";
 
 const input = { prompt: "A blue ceramic teapot", negativePrompt: "", width: 1024, height: 768, steps: 25, seed: 42, resolution: 1024 };
+
+test("v1.1 photo preset is active and matches the importable ComfyUI workflow", () => {
+  const api = JSON.parse(readFileSync(new URL("../../workflows/qwen-image-2.1-q4_k_m-api.json", import.meta.url), "utf8"));
+  assert.equal(api["452"].inputs.negative_prompt, PHOTO_NEGATIVE_PROMPT);
+  assert.equal(api["458"].inputs.cfg, 2);
+  assert.equal(api["458"].inputs.steps, 40);
+  const graph = buildWorkflow({ ...input, negativePrompt: PHOTO_NEGATIVE_PROMPT, steps: 40 }, [], "photo");
+  assert.equal(graph["452"].inputs.negative_prompt, PHOTO_NEGATIVE_PROMPT);
+  assert.equal(graph["458"].inputs.cfg, 2);
+});
 
 test("negative prompts actually engage the negative conditioning branch", () => {
   assert.equal(buildWorkflow(input, [], "test")["458"].inputs.cfg, 1);

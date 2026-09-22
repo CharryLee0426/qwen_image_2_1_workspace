@@ -26,8 +26,8 @@
         "453",
         0
       ],
-      "prompt": "An editorial photograph of a ceramic coffee cup on a weathered wooden table beside a window. Soft morning daylight enters from the left, revealing natural glaze texture and subtle steam. The cup is in crisp focus, with a gently blurred café interior behind it. Neutral colors, believable shadows, and an eye-level camera perspective.",
-      "negative_prompt": "Non-photographic media: illustration, painting, drawing, cartoon, anime, 3D render, CGI.\nArtificial finish: plastic or waxy surfaces, over-smoothed skin, excessive HDR, sharpening halos, unnatural saturation.\nGeneration defects: distorted anatomy, extra or fused fingers, duplicated limbs, repeated objects, warped geometry, banding, compression artifacts.\nUnwanted overlays: watermark, logo, border, frame, unintended text.",
+      "prompt": "A small red fox sitting beside a blue ceramic teapot in a sunlit garden, detailed watercolor illustration, warm natural colors, soft shadows.",
+      "negative_prompt": "",
       "resolution": 1024
     }
   },
@@ -59,8 +59,8 @@
         0
       ],
       "seed": 42,
-      "steps": 40,
-      "cfg": 2,
+      "steps": 25,
+      "cfg": 1,
       "sampler_name": "euler",
       "scheduler": "simple",
       "denoise": 1
@@ -86,7 +86,7 @@
         "457",
         0
       ],
-      "filename_prefix": "Qwen_Image_2.1_Photo_v1.1"
+      "filename_prefix": "Qwen_Image_2.1_Q4_K_M"
     }
   }
 }

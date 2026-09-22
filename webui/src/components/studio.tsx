@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "./icons";
 import { imageUrl, type ImageFile, type Job } from "@/lib/types";
+import { PHOTO_NEGATIVE_PROMPT } from "@/lib/photo-preset";
 
 type Reference = { id: string; url: string; name: string; file?: File; remote?: ImageFile };
-const qualities = { Fast: { resolution: 512, steps: 12 }, Standard: { resolution: 1024, steps: 25 }, High: { resolution: 2048, steps: 40 } };
+const qualities = { Fast: { resolution: 512, steps: 20 }, Standard: { resolution: 1024, steps: 40 }, High: { resolution: 2048, steps: 40 } };
 type Quality = keyof typeof qualities;
 const ratios = [{ name: "Square", value: "1:1", x: 1, y: 1 }, { name: "Landscape", value: "4:3", x: 4, y: 3 }, { name: "Portrait", value: "3:4", x: 3, y: 4 }, { name: "Wide", value: "16:9", x: 16, y: 9 }];
 const terminal = (job?: Job | null) => !job || !["queued", "running"].includes(job.status);
@@ -13,7 +14,8 @@ const terminal = (job?: Job | null) => !job || !["queued", "running"].includes(j
 export default function Studio() {
   const [view, setView] = useState<"studio" | "library">("studio");
   const [prompt, setPrompt] = useState("");
-  const [negativePrompt, setNegativePrompt] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState(PHOTO_NEGATIVE_PROMPT);
+  const [negativeLocked, setNegativeLocked] = useState(true);
   const [quality, setQuality] = useState<Quality>("Standard");
   const [ratio, setRatio] = useState("1:1");
   const [seed, setSeed] = useState("");
@@ -43,7 +45,8 @@ export default function Studio() {
   useEffect(() => {
     try {
       const draft = JSON.parse(localStorage.getItem("qwen-studio-draft") || "{}");
-      setPrompt(draft.prompt || ""); setNegativePrompt(draft.negativePrompt || "");
+      setPrompt(draft.prompt || "");
+      if (draft.negativePromptVersion === 2 && typeof draft.negativePrompt === "string") setNegativePrompt(draft.negativePrompt);
       if (draft.quality in qualities) setQuality(draft.quality);
       if (ratios.some((r) => r.value === draft.ratio)) setRatio(draft.ratio);
       setSeed(draft.seed || "");
@@ -63,7 +66,7 @@ export default function Studio() {
 
   useEffect(() => {
     if (!ready) return;
-    try { localStorage.setItem("qwen-studio-draft", JSON.stringify({ prompt, negativePrompt, quality, ratio, seed })); } catch { /* In-memory editing remains available. */ }
+    try { localStorage.setItem("qwen-studio-draft", JSON.stringify({ prompt, negativePrompt, negativePromptVersion: 2, quality, ratio, seed })); } catch { /* In-memory editing remains available. */ }
   }, [prompt, negativePrompt, quality, ratio, seed, ready]);
 
   useEffect(() => {
@@ -185,8 +188,8 @@ export default function Studio() {
             onDrop={(event) => { event.preventDefault(); setDragging(false); addFiles(Array.from(event.dataTransfer.files)); }}
             onPaste={(event) => { const files = Array.from(event.clipboardData.files); if (files.length) { event.preventDefault(); addFiles(files); } }}>
             <div className="composer-title"><h2>{references.length ? "Image + text" : "Text to image"}</h2><span className="model-badge">Qwen 2.1</span></div>
-            <div className="prompt-field"><label htmlFor="positive-prompt">Positive prompt</label><textarea ref={promptInput} id="positive-prompt" name="positivePrompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={12000} disabled={busy} spellCheck={false} aria-required="true" /></div>
-            <div className="prompt-field negative"><label htmlFor="negative-prompt">Negative prompt</label><textarea id="negative-prompt" name="negativePrompt" value={negativePrompt} onChange={(e) => setNegativePrompt(e.target.value)} maxLength={6000} disabled={busy} spellCheck={false} /></div>
+            <div className="prompt-field"><label htmlFor="positive-prompt">Positive prompt</label><textarea ref={promptInput} id="positive-prompt" name="positivePrompt" value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={12000} disabled={busy} spellCheck={false} aria-required="true" placeholder="Describe the subject, setting, framing, light, and natural textures of your photograph." /><p className="prompt-hint">For a natural photo, describe what the camera sees and where the light comes from.</p></div>
+            <div className={`prompt-field negative ${negativeLocked ? "locked" : ""}`}><div className="negative-heading"><label htmlFor="negative-prompt">Negative prompt <span>{negativePrompt === PHOTO_NEGATIVE_PROMPT ? "Photo preset" : "Custom"}</span></label><div className="negative-actions"><button type="button" className="negative-reset" onClick={() => { setNegativePrompt(PHOTO_NEGATIVE_PROMPT); setNegativeLocked(true); }} disabled={busy} title="Reset negative prompt to the photo preset">Reset</button><button type="button" className="negative-lock" onClick={() => setNegativeLocked((locked) => !locked)} disabled={busy} aria-label={negativeLocked ? "Unlock negative prompt" : "Lock negative prompt"} aria-pressed={!negativeLocked} title={negativeLocked ? "Unlock to edit negative prompt" : "Lock negative prompt"}><Icon name={negativeLocked ? "lock" : "unlock"} width="16" height="16" /></button></div></div><textarea id="negative-prompt" name="negativePrompt" value={negativePrompt} onChange={(e) => { if (!negativeLocked) setNegativePrompt(e.target.value); }} maxLength={6000} disabled={busy} readOnly={negativeLocked} aria-readonly={negativeLocked} spellCheck={false} /><p className="prompt-hint">{negativeLocked ? "Locked to prevent accidental edits. Unlock to adapt it." : "Customizing the preset. Reset restores the photo default."}</p></div>
             <div className="reference-section"><div className="field-heading"><label htmlFor="reference-input">Reference images</label>{references.length > 0 && <span>{references.length}/10</span>}</div>
               <input ref={fileInput} id="reference-input" className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={busy} onChange={(event) => { addFiles(Array.from(event.target.files || [])); event.target.value = ""; }} />
               <div className="reference-list">

@@ -16,20 +16,24 @@ def main():
     parser.add_argument("prompt")
     parser.add_argument("--width", type=int, default=1024)
     parser.add_argument("--height", type=int, default=1024)
-    parser.add_argument("--steps", type=int, default=25)
+    parser.add_argument("--steps", type=int, default=40)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--prefix", default="Qwen_Image_2.1_Q4_K_M")
+    parser.add_argument("--negative-prompt", help="Override the v1.1 photo preset; pass an empty string to disable negative guidance")
+    parser.add_argument("--prefix", default="Qwen_Image_2.1_Photo_v1.1")
     parser.add_argument("--timeout", type=int, default=3600)
     args = parser.parse_args()
     graph = json.loads((ROOT / "workflows/qwen-image-2.1-q4_k_m-api.json").read_text())
     graph["452"]["inputs"]["prompt"] = args.prompt
+    if args.negative_prompt is not None:
+        graph["452"]["inputs"]["negative_prompt"] = args.negative_prompt
     graph["456"]["inputs"].update(width=args.width, height=args.height)
-    graph["458"]["inputs"].update(steps=args.steps, seed=args.seed)
+    graph["458"]["inputs"].update(steps=args.steps, seed=args.seed, cfg=2 if graph["452"]["inputs"]["negative_prompt"].strip() else 1)
     graph["461"]["inputs"]["filename_prefix"] = args.prefix
     workflow = json.loads((ROOT / "workflows/qwen-image-2.1-q4_k_m.json").read_text())
     for node in workflow["nodes"]:
         if node["id"] == 452:
             node["widgets_values"][0] = args.prompt
+            node["widgets_values"][1] = graph["452"]["inputs"]["negative_prompt"]
         elif node["id"] == 456:
             node["widgets_values"][:2] = [args.width, args.height]
         elif node["id"] == 458:

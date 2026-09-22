@@ -1,6 +1,6 @@
 # Qwen Image 2.1 Q4_K_M — Image Studio
 
-Open **http://127.0.0.1:3000** for the Next.js image studio. It supports positive and negative prompts, up to 10 reference images, live progress, cancellation, downloads, and a saved image library. See `webui/README.md` for frontend development and API details.
+Open **http://127.0.0.1:3000** for the Next.js image studio. It supports positive and negative prompts, up to 10 reference images, live progress, cancellation, downloads, and a saved image library. The v1.1 photo preset starts with a locked negative prompt; use the lock button to edit it or Reset to restore the preset. See [v1.1 research and design](docs/photo-workflow-v1.1.md) and `webui/README.md` for details.
 
 The underlying ComfyUI editor remains available at **http://127.0.0.1:8188**. Its Workflows sidebar includes **Qwen Image 2.1 Q4_K_M** and **Qwen Image 2.1 Q4_K_M - Reference**.
 
@@ -10,7 +10,7 @@ The underlying ComfyUI editor remains available at **http://127.0.0.1:8188**. It
 - Status: `.venv/bin/python scripts/service.py status`.
 - Generated images: `ComfyUI/output/`.
 - Server logs: `logs/comfyui.log` and `logs/webui.log`.
-- Importable workflow: `workflows/qwen-image-2.1-q4_k_m.json`.
+- Importable v1.1 workflow: `workflows/qwen-image-2.1-q4_k_m.json`. Exact v1.0 and v1.1 snapshots are in `workflows/v1.0/` and `workflows/v1.1/`.
 
 Both servers run in the background on localhost. Start them again after a reboot; they do not register login services.
 
@@ -20,10 +20,10 @@ Verified on this M4 Pro: all three SHA-256 checksums passed, and a 1024 × 1024 
 
 ```sh
 cd qwen_image_2_1_workspace
-.venv/bin/python scripts/generate.py "A small red fox in a sunlit garden, watercolor illustration" --width 1024 --height 1024 --steps 25
+.venv/bin/python scripts/generate.py "An editorial photograph of a red fox in a sunlit garden, natural fur texture, soft morning light from the left" --width 1024 --height 1024
 ```
 
-The terminal script defaults to 1024 × 1024, 25 Euler steps, simple schedule, CFG 1, seed 42. Width and height should be multiples of 32. The generated PNG includes the workflow and generation parameters. The Next.js app automatically uses CFG 2 when a negative prompt is supplied, and CFG 1 otherwise. The saved ComfyUI workflows default to CFG 2 so negative prompts work there too. For more detail, increase steps toward 40–50; native 2048 × 2048 costs substantially more time and memory.
+The terminal script defaults to 1024 × 1024, 40 Euler steps, simple schedule, the v1.1 photo negative preset at CFG 2, and seed 42. Width and height should be multiples of 32. The generated PNG includes the workflow and generation parameters. Pass `--negative-prompt ''` to use CFG 1 without negative guidance. The Next.js app also uses CFG 2 when a negative prompt is supplied, and CFG 1 otherwise. Native 2048 × 2048 costs substantially more time and memory.
 
 ## Installed weights
 

@@ -1,8 +1,8 @@
 {
-  "id": "7316ac69-a18a-4830-90e0-e7a57663a4fe",
+  "id": "77c0b663-04ba-40bf-932e-924d7b78840c",
   "revision": 0,
-  "last_node_id": 500,
-  "last_link_id": 682,
+  "last_node_id": 461,
+  "last_link_id": 680,
   "nodes": [
     {
       "id": 451,
@@ -35,7 +35,7 @@
       "widgets_values": [
         "qwen-image-2.1-Q4_K_M.gguf"
       ],
-      "title": "Qwen Image 2.1 Photo v1.1 — Q4_K_M"
+      "title": "Qwen Image 2.1 \u2014 Q4_K_M"
     },
     {
       "id": 452,
@@ -63,14 +63,14 @@
           "name": "images.image_1",
           "shape": 7,
           "type": "IMAGE",
-          "link": 681
+          "link": null
         },
         {
           "localized_name": "vae",
           "name": "vae",
           "shape": 7,
           "type": "VAE",
-          "link": 682
+          "link": null
         },
         {
           "localized_name": "prompt",
@@ -112,17 +112,15 @@
           "localized_name": "latent",
           "name": "latent",
           "type": "LATENT",
-          "links": [
-            654
-          ]
+          "links": []
         }
       ],
       "properties": {
         "Node name for S&R": "TextEncodeQwenImage21"
       },
       "widgets_values": [
-        "Transform the supplied scene into a natural photograph of a red fox beside a blue ceramic teapot in a garden. Keep the main subjects and composition. Use soft morning daylight, believable fur and ceramic texture, and natural shadows.",
-        "Non-photographic media: illustration, painting, drawing, cartoon, anime, 3D render, CGI.\nArtificial finish: plastic or waxy surfaces, over-smoothed skin, excessive HDR, sharpening halos, unnatural saturation.\nGeneration defects: distorted anatomy, extra or fused fingers, duplicated limbs, repeated objects, warped geometry, banding, compression artifacts.\nUnwanted overlays: watermark, logo, border, frame, unintended text.",
+        "A small red fox sitting beside a blue ceramic teapot in a sunlit garden, detailed watercolor illustration, warm natural colors, soft shadows.",
+        "",
         1024
       ]
     },
@@ -208,8 +206,7 @@
           "name": "VAE",
           "type": "VAE",
           "links": [
-            649,
-            682
+            649
           ]
         }
       ],
@@ -240,7 +237,7 @@
       ],
       "flags": {},
       "order": 4,
-      "mode": 2,
+      "mode": 0,
       "inputs": [
         {
           "localized_name": "width",
@@ -266,7 +263,9 @@
           "localized_name": "LATENT",
           "name": "LATENT",
           "type": "LATENT",
-          "links": []
+          "links": [
+            654
+          ]
         }
       ],
       "properties": {
@@ -421,7 +420,7 @@
       "widgets_values": [
         42,
         "fixed",
-        40,
+        25,
         2,
         "euler",
         "simple",
@@ -458,47 +457,10 @@
       ],
       "properties": {},
       "widgets_values": [
-        "Qwen_Image_2.1_Photo_v1.1",
+        "Qwen_Image_2.1_Q4_K_M",
         "png",
         "8-bit",
         "sRGB"
-      ]
-    },
-    {
-      "id": 500,
-      "type": "LoadImage",
-      "pos": [
-        20,
-        920
-      ],
-      "size": [
-        380,
-        380
-      ],
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            681
-          ]
-        },
-        {
-          "name": "MASK",
-          "type": "MASK",
-          "links": []
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoadImage"
-      },
-      "widgets_values": [
-        "qwen-studio/7db29985-1769-4f0f-ab9c-bae93df81f82-1.png",
-        "image"
       ]
     }
   ],
@@ -537,8 +499,8 @@
     ],
     [
       654,
-      452,
-      2,
+      456,
+      0,
       458,
       3,
       "LATENT"
@@ -566,22 +528,6 @@
       461,
       0,
       "IMAGE"
-    ],
-    [
-      681,
-      500,
-      0,
-      452,
-      1,
-      "IMAGE"
-    ],
-    [
-      682,
-      454,
-      0,
-      452,
-      2,
-      "VAE"
     ]
   ],
   "groups": [],
