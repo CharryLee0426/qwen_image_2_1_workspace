@@ -1,5 +1,5 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
-import { get, issueSignedToken, presignUrl, put } from "@vercel/blob";
+import { BlobPreconditionFailedError, get, issueSignedToken, presignUrl, put } from "@vercel/blob";
 import type { ImageFile, Job } from "./types";
 
 const INDEX_PATH = "studio/jobs-v1.json";
@@ -31,7 +31,9 @@ async function readIndex(): Promise<Index> {
   if (!result || !result.stream) return { jobs: [] };
   if (result.statusCode !== 200) throw new Error("Could not load the image library.");
   const data = await new Response(result.stream).json() as { jobs?: Job[] };
-  return { jobs: Array.isArray(data.jobs) ? data.jobs : [], etag: result.blob.etag };
+  // Private Blob GETs expose a weak HTTP ETag (W/"..."). Conditional PUTs
+  // require the strong ETag for the same object.
+  return { jobs: Array.isArray(data.jobs) ? data.jobs : [], etag: result.blob.etag.replace(/^W\//, "") };
 }
 
 async function changeIndex(change: (jobs: Job[]) => Job[]) {
@@ -45,8 +47,8 @@ async function changeIndex(change: (jobs: Job[]) => Job[]) {
       });
       return;
     } catch (error) {
-      const latest = await readIndex();
-      if (latest.etag === current.etag) throw error;
+      if (!(error instanceof BlobPreconditionFailedError)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
     }
   }
   throw new Error("The image library is busy. Try again.");
