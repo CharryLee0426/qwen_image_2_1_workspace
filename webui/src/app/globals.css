@@ -25,3 +25,9 @@ nav{display:flex;gap:29px;height:100%;align-items:center}.nav-link{height:100%;d
 .negative textarea,.prompt-field.negative textarea{height:140px;min-height:140px;font-size:11px;line-height:1.45}
 .negative.locked textarea{background:#f7f7f9;color:#5b5b61;cursor:default}
 .negative.locked textarea:focus-visible{border-color:#81b6ed;box-shadow:0 0 0 3px #0071e310;background:#f7f7f9}
+.login-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 20%,#e8f2ff,transparent 35%),var(--paper)}
+.login-card{width:min(100%,390px);padding:36px;background:#fff;border-radius:24px;box-shadow:0 20px 60px #10182810;display:flex;flex-direction:column;gap:16px}
+.login-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--ink);color:#fff;font-size:25px}
+.login-card h1{font-size:28px;letter-spacing:-1px}.login-card p{color:var(--muted);font-size:13px;line-height:1.5}
+.login-card label{font-size:12px;font-weight:600;margin-top:8px}.login-card input{border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px}
+.login-card .error-message{color:#b74135;background:#fff3f1;margin:0}.login-card .generate-button{margin-top:6px}

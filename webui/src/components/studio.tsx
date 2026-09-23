@@ -26,6 +26,7 @@ export default function Studio() {
   const [submitting, setSubmitting] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [connected, setConnected] = useState<boolean | null>(null);
+  const [hostedMode, setHostedMode] = useState(false);
   const [error, setError] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -58,7 +59,7 @@ export default function Studio() {
       const active = data.find((job) => !terminal(job));
       if (active) { setActiveJob(active); setPrompt(active.prompt); setNegativePrompt(active.negativePrompt); setReferences(active.references.map((image, index) => ({ id: crypto.randomUUID(), name: `Reference ${index + 1}`, url: imageUrl(image), remote: image }))); }
     }).catch(() => setError("Your library could not be loaded."));
-    const health = () => fetch("/api/health").then((r) => r.json()).then((d) => setConnected(d.connected)).catch(() => setConnected(false));
+    const health = () => fetch("/api/health").then((r) => r.json()).then((d) => { setConnected(d.connected); setHostedMode(d.mode === "runpod"); }).catch(() => setConnected(false));
     health(); const timer = setInterval(health, 15000);
     const urls = ownedUrls.current;
     return () => { clearInterval(timer); urls.forEach(URL.revokeObjectURL); };
@@ -122,17 +123,33 @@ export default function Studio() {
       const dimension = (part: number) => Math.max(256, Math.round(preset.resolution * part / Math.max(shape.x, shape.y) / 32) * 32);
       const chosenSeed = seed.trim() ? Number(seed) : Math.floor(Math.random() * 2 ** 32);
       if (!Number.isSafeInteger(chosenSeed) || chosenSeed < 0) throw new Error("Enter a positive seed or leave it blank.");
-      const form = new FormData();
-      form.set("settings", JSON.stringify({ prompt, negativePrompt, width: dimension(shape.x), height: dimension(shape.y), steps: preset.steps, resolution: preset.resolution, seed: chosenSeed }));
-      for (const ref of references) {
-        if (ref.file) form.append("images", ref.file);
-        else {
-          const response = await fetch(ref.url);
-          if (!response.ok) throw new Error("A reference image could not be loaded.");
-          form.append("images", await response.blob(), ref.remote?.filename || "reference.png");
+      const settings = { prompt, negativePrompt, width: dimension(shape.x), height: dimension(shape.y), steps: preset.steps, resolution: preset.resolution, seed: chosenSeed };
+      let response: Response;
+      if (hostedMode) {
+        const paths = await Promise.all(references.map(async (ref) => {
+          if (ref.remote?.blobPath) return ref.remote.blobPath;
+          if (!ref.file) throw new Error("A reference image could not be opened.");
+          const issued = await fetch("/api/uploads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: ref.name, type: ref.file.type, size: ref.file.size }) });
+          const upload = await issued.json() as { path?: string; putUrl?: string; error?: string };
+          if (!issued.ok || !upload.path || !upload.putUrl) throw new Error(upload.error || "Could not prepare a reference upload.");
+          const sent = await fetch(upload.putUrl, { method: "PUT", headers: { "Content-Type": ref.file.type }, body: ref.file });
+          if (!sent.ok) throw new Error(`Reference upload failed (${sent.status}).`);
+          return upload.path;
+        }));
+        response = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ settings, references: paths }) });
+      } else {
+        const form = new FormData();
+        form.set("settings", JSON.stringify(settings));
+        for (const ref of references) {
+          if (ref.file) form.append("images", ref.file);
+          else {
+            const stored = await fetch(ref.url);
+            if (!stored.ok) throw new Error("A reference image could not be loaded.");
+            form.append("images", await stored.blob(), ref.remote?.filename || "reference.png");
+          }
         }
+        response = await fetch("/api/generate", { method: "POST", body: form });
       }
-      const response = await fetch("/api/generate", { method: "POST", body: form });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not start generation.");
       setActiveJob(data); updateJob(data); setView("studio"); setElapsed(0);
@@ -170,6 +187,20 @@ export default function Studio() {
     setView("studio"); promptInput.current?.focus();
   }
 
+  async function downloadResult() {
+    if (!result) return;
+    try {
+      const response = await fetch(imageUrl(result));
+      if (!response.ok) throw new Error("Could not download the image.");
+      const objectUrl = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = result.filename || "qwen-image.png";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch (e) { setError((e as Error).message); }
+  }
+
   return <>
     <header className="topbar"><div className="topbar-inner">
       <a className="wordmark" href="/" aria-label="Qwen Image home"><span className="brand-icon"><Icon name="sparkle" /></span>Qwen Image<span className="version">2.1</span></a>
@@ -177,7 +208,7 @@ export default function Studio() {
     </div></header>
 
     <main className="main-shell">
-      <div className="page-heading"><h1>{view === "studio" ? "Create." : "Your collection."}</h1><div className={`connection ${connected === false ? "offline" : ""}`} title={connected === false ? "Image engine offline" : "Connected to your local image engine"}><span />{connected === null ? "Connecting" : connected ? "On your Mac" : "Offline"}</div></div>
+      <div className="page-heading"><h1>{view === "studio" ? "Create." : "Your collection."}</h1><div className={`connection ${connected === false ? "offline" : ""}`} title={connected === false ? "Image engine offline" : hostedMode ? "Runpod serverless is available" : "Connected to your local image engine"}><span />{connected === null ? "Connecting" : connected ? hostedMode ? "Runpod ready" : "On your Mac" : "Offline"}</div></div>
 
       {view === "studio" ? <>
         <div className="studio-grid">
@@ -211,17 +242,17 @@ export default function Studio() {
 
           <section className="canvas-card" aria-label="Generated image">
             <div className={`image-stage ${busy ? "working" : ""}`}>
-              {result ? <button className="image-open" aria-label="Expand generated image" onClick={() => previewDialog.current?.showModal()}><img className="result-image" src={imageUrl(result)} alt={selected?.prompt || "Generated image"} onLoad={(event) => { const image = event.currentTarget; setImageSize(`${image.naturalWidth} × ${image.naturalHeight}`); }} /></button> : <div className="empty-canvas"><span className="empty-orb"><Icon name="sparkle" width="42" height="42" /></span></div>}
+              {result ? <button className="image-open" aria-label="Expand generated image" onClick={() => previewDialog.current?.showModal()}><img className="result-image" src={imageUrl(result, false, true)} alt={selected?.prompt || "Generated image"} onLoad={(event) => { const image = event.currentTarget; setImageSize(`${result.width || image.naturalWidth} × ${result.height || image.naturalHeight}`); }} /></button> : <div className="empty-canvas"><span className="empty-orb"><Icon name="sparkle" width="42" height="42" /></span></div>}
               {busy && <div className="generation-overlay"><div className="progress-card" role="status" aria-live="polite"><div className="progress-top"><span className="spinner" /><span>{submitting ? "Starting" : activeJob?.phase || "Generating"}</span>{activeJob?.phase === "Generating" && activeJob.progress > 0 && <strong>{activeJob.progress}%</strong>}</div><div className="progress-track"><span className={activeJob?.progress ? "" : "indeterminate"} style={activeJob?.progress ? { width: `${activeJob.progress}%` } : undefined} /></div><div className="progress-bottom"><span>{Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}</span>{!submitting && <button type="button" onClick={cancel} disabled={stopping}>{stopping ? "Stopping" : "Cancel"}</button>}</div></div></div>}
             </div>
             <div className="image-toolbar"><div className="image-meta">{result ? <>{imageSize || `${selected?.width} × ${selected?.height}`}<span>PNG</span></> : <span>Qwen Image 2.1</span>}</div><div className="image-actions">
-              {selected && result && <><button className="icon-button" aria-label="Reuse prompt and settings" title="Reuse prompt" disabled={busy} onClick={() => reuse(selected)}><Icon name="repeat" width="18" height="18" /></button><button className="icon-button" aria-label="Use image as reference" title="Use as reference" disabled={busy} onClick={useAsReference}><Icon name="image" width="18" height="18" /></button><a className="download-button" href={imageUrl(result, true)} download><Icon name="download" width="17" height="17" />Download</a></>}
+              {selected && result && <><button className="icon-button" aria-label="Reuse prompt and settings" title="Reuse prompt" disabled={busy} onClick={() => reuse(selected)}><Icon name="repeat" width="18" height="18" /></button><button className="icon-button" aria-label="Use image as reference" title="Use as reference" disabled={busy} onClick={useAsReference}><Icon name="image" width="18" height="18" /></button><button className="download-button" type="button" onClick={downloadResult}><Icon name="download" width="17" height="17" />Download</button></>}
             </div></div>
           </section>
         </div>
-        {completed.length > 0 && <section className="recent-section"><div className="section-heading"><h2>Recent</h2><button onClick={() => setView("library")}>View all<Icon name="arrow" width="16" height="16" /></button></div><div className="recent-grid">{completed.slice(0, 6).map((job) => <button key={job.id} className={`recent-image ${selected?.id === job.id ? "chosen" : ""}`} onClick={() => setSelected(job)} aria-label={`View image: ${job.prompt}`} aria-pressed={selected?.id === job.id}><img src={imageUrl(job.images[0])} alt={job.prompt} loading="lazy" /></button>)}</div></section>}
-      </> : <section className="library-grid" aria-label="Image library">{completed.length ? completed.map((job) => <button className="library-image" key={job.id} onClick={() => { setSelected(job); setView("studio"); }}><img src={imageUrl(job.images[0])} alt={job.prompt} loading="lazy" /><span>{job.prompt}</span></button>) : <div className="library-empty"><Icon name="image" width="38" height="38" /><span>No images yet</span></div>}</section>}
-      <footer className="footer"><span>Qwen Image Studio</span><span>Made on your Mac.</span></footer>
+        {completed.length > 0 && <section className="recent-section"><div className="section-heading"><h2>Recent</h2><button onClick={() => setView("library")}>View all<Icon name="arrow" width="16" height="16" /></button></div><div className="recent-grid">{completed.slice(0, 6).map((job) => <button key={job.id} className={`recent-image ${selected?.id === job.id ? "chosen" : ""}`} onClick={() => setSelected(job)} aria-label={`View image: ${job.prompt}`} aria-pressed={selected?.id === job.id}><img src={imageUrl(job.images[0], false, true)} alt={job.prompt} loading="lazy" /></button>)}</div></section>}
+      </> : <section className="library-grid" aria-label="Image library">{completed.length ? completed.map((job) => <button className="library-image" key={job.id} onClick={() => { setSelected(job); setView("studio"); }}><img src={imageUrl(job.images[0], false, true)} alt={job.prompt} loading="lazy" /><span>{job.prompt}</span></button>) : <div className="library-empty"><Icon name="image" width="38" height="38" /><span>No images yet</span></div>}</section>}
+      <footer className="footer"><span>Qwen Image Studio</span><span>{hostedMode ? "Powered by Runpod." : "Made on your Mac."}</span></footer>
     </main>
     <dialog ref={previewDialog} className="image-dialog" onClick={(event) => { if (event.target === event.currentTarget) previewDialog.current?.close(); }}><button className="dialog-close icon-button" aria-label="Close image preview" onClick={() => previewDialog.current?.close()}><Icon name="close" /></button>{result && <img src={imageUrl(result)} alt={selected?.prompt || "Generated image"} />}</dialog>
   </>;

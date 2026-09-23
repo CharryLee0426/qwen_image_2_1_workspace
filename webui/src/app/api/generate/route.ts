@@ -3,11 +3,41 @@ import sharp from "sharp";
 import { buildWorkflow, validateInput } from "@/lib/workflow";
 import { comfyFetch, connectMonitor, clientId, mutationAllowed, saveJob } from "@/lib/comfy";
 import type { ImageFile, Job } from "@/lib/types";
+import { authorized, serverlessMode, unauthorized } from "@/lib/auth";
+import { newJobId, safeBlobPath, saveServerlessJob, submitServerlessJob } from "@/lib/serverless";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!authorized(request)) return unauthorized();
   if (!mutationAllowed(request)) return Response.json({ error: "Invalid origin." }, { status: 403 });
+  if (serverlessMode) {
+    if (Number(request.headers.get("content-length")) > 100_000) return Response.json({ error: "Generation request is too large." }, { status: 413 });
+    try {
+      const body = await request.json() as { settings?: unknown; references?: unknown };
+      const input = validateInput(body.settings);
+      const referencePaths = body.references;
+      if (!Array.isArray(referencePaths) || referencePaths.length > 10 || referencePaths.some((path) => typeof path !== "string" || (!safeBlobPath(path, "reference") && !safeBlobPath(path, "output")))) {
+        throw new Error("Use up to 10 uploaded reference images.");
+      }
+      const id = newJobId();
+      const references: ImageFile[] = referencePaths.map((blobPath, index) => ({ filename: `${id}-${index + 1}.png`, subfolder: "", type: "input", blobPath }));
+      const prompt = buildWorkflow(input, references.map((image) => image.filename), id);
+      const job: Job = { ...input, id, promptId: "", createdAt: new Date().toISOString(), status: "queued", phase: "Queued", progress: 0, references, images: [] };
+      await saveServerlessJob(job);
+      try {
+        const submitted = await submitServerlessJob(job, prompt, references);
+        await saveServerlessJob(submitted);
+        return Response.json(submitted, { status: 202 });
+      } catch (error) {
+        await saveServerlessJob({ ...job, status: "failed", phase: "Failed", error: error instanceof Error ? error.message : "Could not start generation." });
+        throw error;
+      }
+    } catch (error) {
+      console.error(error);
+      return Response.json({ error: error instanceof Error ? error.message : "Could not start generation." }, { status: 400 });
+    }
+  }
   if (Number(request.headers.get("content-length")) > 100 * 1024 * 1024) return Response.json({ error: "Images exceed 100 MB." }, { status: 413 });
   try {
     const form = await request.formData();

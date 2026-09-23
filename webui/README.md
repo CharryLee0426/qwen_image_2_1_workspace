@@ -35,6 +35,16 @@ npm run build
 
 The workflow tests cover negative guidance, ordered multiple reference conditioning, reference-derived latents, aspect ratio, and invalid inputs. The origin test covers Next's normalized URL behavior and rejection of foreign origins. Live inference and cancellation evidence is saved in the workspace's `deployment/webui-*-test*.json` files.
 
+## Hosted deployment
+
+The Vercel deployment uses `RUNPOD_ENDPOINT_ID`, `RUNPOD_API_KEY`, `STUDIO_PASSWORD`, `RUNPOD_WEBHOOK_SECRET`, `PUBLIC_BASE_URL`, and a project-connected private Vercel Blob store (`BLOB_STORE_ID` and Vercel's Blob credentials). The shared studio password is stored as a Vercel secret and creates a secure, HTTP-only session cookie. Keep the Runpod API key and studio password out of Git.
+
+Hosted reference images upload from the browser straight to private Blob with a short-lived, single-file signed URL. The Runpod worker downloads them and uploads a full PNG plus a 1024-pixel WebP preview straight to Blob. Job status and image paths stay in a small private Blob index. The studio displays previews in its grid and fetches the original only for a full view or download. This keeps large images out of Vercel Function request and response bodies and out of Runpod's JSON results.
+
+Each reference image is limited to 20 MB and each generated PNG to 100 MB. The worker enforces these limits as well as the UI and signed upload tokens. A larger-than-100-MB output needs a multipart upload implementation before increasing that limit. The hosted library retains the newest 100 job records; image files stay in Blob until explicitly removed.
+
+The worker image and exact model revisions are in `../runpod/`. The endpoint should use NVIDIA GeForce RTX 5090, zero minimum workers, two maximum workers, and one concurrent request per worker. Cold starts and real image generation time must be measured on the deployed GPU; the requested five-second average is a planning assumption, not a verified Qwen Image 2.1 runtime.
+
 ## API
 
 - `POST /api/generate`: multipart `settings` JSON plus zero to ten `images` files. Settings: `prompt`, `negativePrompt`, `width`, `height`, `steps`, `seed`, `resolution`.

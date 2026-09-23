@@ -2,6 +2,8 @@
 
 Open **http://127.0.0.1:3000** for the Next.js image studio. It supports positive and negative prompts, up to 10 reference images, live progress, cancellation, downloads, and a saved image library. The v1.1 photo preset starts with a locked negative prompt; use the lock button to edit it or Reset to restore the preset. See [v1.1 research and design](docs/photo-workflow-v1.1.md) and `webui/README.md` for details.
 
+For hosted deployment, `runpod/Dockerfile` and `runpod/handler.py` run the pinned ComfyUI workflow on Runpod Serverless, while `webui/` runs on Vercel. Large reference and result images transfer through private Vercel Blob; see the hosted deployment section in `webui/README.md`.
+
 The underlying ComfyUI editor remains available at **http://127.0.0.1:8188**. Its Workflows sidebar includes **Qwen Image 2.1 Q4_K_M** and **Qwen Image 2.1 Q4_K_M - Reference**.
 
 - Start both servers: double-click `start.command`, or run `./start.command` in this directory.
