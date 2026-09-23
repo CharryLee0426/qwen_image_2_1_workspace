@@ -75,11 +75,11 @@ export async function signedBlobUrl(pathname: string, operation: "get" | "put", 
   const validUntil = Date.now() + (options?.validForMs || (operation === "get" ? 15 * 60_000 : 4 * 60 * 60_000));
   const signed = await issueSignedToken({
     pathname, operations: [operation], validUntil,
-    ...(operation === "put" ? { allowedContentTypes: [options?.contentType || "application/octet-stream"], maximumSizeInBytes: options?.maxBytes || 100 * 1024 * 1024 } : {}),
+    ...(operation === "put" ? { allowedContentTypes: [options?.contentType || "application/octet-stream"], maximumSizeInBytes: options?.maxBytes || 100 * 1024 * 1024, addRandomSuffix: false } : {}),
   });
   return (await presignUrl(signed, {
     pathname, operation, access: "private", validUntil,
-    ...(operation === "put" ? { allowedContentTypes: [options?.contentType || "application/octet-stream"], maximumSizeInBytes: options?.maxBytes || 100 * 1024 * 1024 } : {}),
+    ...(operation === "put" ? { allowedContentTypes: [options?.contentType || "application/octet-stream"], maximumSizeInBytes: options?.maxBytes || 100 * 1024 * 1024, addRandomSuffix: false } : {}),
   } as Parameters<typeof presignUrl>[1])).presignedUrl;
 }
 
