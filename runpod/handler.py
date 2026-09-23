@@ -35,10 +35,13 @@ def _blob_url(value, operation):
     if operation == "get":
         if not parsed.hostname.endswith(".private.blob.vercel-storage.com"):
             raise ValueError("Reference URL must point to private Vercel Blob")
-    elif parsed.hostname != "blob.vercel-storage.com":
-        # The Blob SDK signs upload URLs for its control-plane host.
-        if not parsed.hostname.endswith(".blob.vercel-storage.com"):
-            raise ValueError("Output URL must point to Vercel Blob")
+    elif not (
+        (parsed.hostname == "vercel.com" and parsed.path == "/api/blob/")
+        or parsed.hostname == "blob.vercel-storage.com"
+        or parsed.hostname.endswith(".blob.vercel-storage.com")
+    ):
+        # Private Blob signed PUTs use Vercel's /api/blob/ control plane.
+        raise ValueError("Output URL must point to Vercel Blob")
     return value
 
 
