@@ -22,6 +22,7 @@ COMFY = "http://127.0.0.1:8188"
 MAX_INPUT_BYTES = 20 * 1024 * 1024
 MAX_OUTPUT_BYTES = 100 * 1024 * 1024
 WAIT_SECONDS = 1800
+STARTUP_SECONDS = 300
 NAME = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,100}$")
 
 
@@ -72,6 +73,19 @@ def _upload(url, data, content_type):
     response.raise_for_status()
 
 
+def _wait_for_comfy():
+    deadline = time.monotonic() + STARTUP_SECONDS
+    while time.monotonic() < deadline:
+        try:
+            response = requests.get(f"{COMFY}/system_stats", timeout=5)
+            if response.ok:
+                return
+        except requests.RequestException:
+            pass
+        time.sleep(2)
+    raise TimeoutError("ComfyUI did not become ready within 5 minutes")
+
+
 def _wait_for_history(prompt_id):
     deadline = time.monotonic() + WAIT_SECONDS
     while time.monotonic() < deadline:
@@ -100,6 +114,7 @@ def handler(job):
         return {"error": "Use up to 10 reference images"}
 
     try:
+        _wait_for_comfy()
         for reference in references:
             _download_reference(reference["name"], reference["url"])
         queued = requests.post(f"{COMFY}/prompt", json={"prompt": workflow}, timeout=30)
