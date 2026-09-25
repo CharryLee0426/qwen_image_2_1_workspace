@@ -1,7 +1,18 @@
 import { COMFY_URL } from "@/lib/comfy";
+import { authorized, serverlessMode, unauthorized } from "@/lib/auth";
+import { safeBlobPath, signedBlobUrl } from "@/lib/serverless";
 
 export async function GET(request: Request) {
+  if (!authorized(request)) return unauthorized();
   const query = new URL(request.url).searchParams;
+  if (serverlessMode) {
+    const pathname = query.get("path") || "";
+    if (!safeBlobPath(pathname, "reference") && !safeBlobPath(pathname, "output")) return Response.json({ error: "Invalid image." }, { status: 400 });
+    try {
+      const url = await signedBlobUrl(pathname, "get");
+      return Response.redirect(url, 302);
+    } catch { return Response.json({ error: "Image is unavailable." }, { status: 503 }); }
+  }
   const filename = query.get("filename") || "";
   const subfolder = query.get("subfolder") || "";
   const type = query.get("type") || "output";

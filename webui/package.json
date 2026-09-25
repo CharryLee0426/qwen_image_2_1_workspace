@@ -10,16 +10,19 @@
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "next": "16.3.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.4",
+    "web-push": "^3.6.7",
     "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "@types/ws": "^8",
     "tsx": "^4.20.0",
     "typescript": "^5.9"

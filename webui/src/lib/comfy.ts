@@ -69,6 +69,15 @@ export async function saveJob(job: Job) {
   await rename(tmp, file);
 }
 
+export async function reserveJob(job: Job) {
+  await mkdir(JOBS_DIR, { recursive: true });
+  try { await writeFile(jobPath(job.id), JSON.stringify(job, null, 2), { flag: "wx" }); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") throw new Error("This picture has already been generated. Start a new project for another picture.");
+    throw error;
+  }
+}
+
 export async function readJob(id: string): Promise<Job | null> {
   try { return JSON.parse(await readFile(jobPath(id), "utf8")); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return null; throw error; }
@@ -78,7 +87,7 @@ export async function listJobs(): Promise<Job[]> {
   await mkdir(JOBS_DIR, { recursive: true });
   const files = (await readdir(JOBS_DIR)).filter((file) => file.endsWith(".json"));
   const jobs = await Promise.all(files.map((file) => readJob(file.slice(0, -5))));
-  return jobs.filter((job): job is Job => !!job).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 100);
+  return jobs.filter((job): job is Job => !!job).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function refreshJob(job: Job): Promise<Job> {
