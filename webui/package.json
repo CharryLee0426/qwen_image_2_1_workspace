@@ -15,12 +15,14 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "sharp": "^0.35.4",
+    "web-push": "^3.6.7",
     "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "@types/ws": "^8",
     "tsx": "^4.20.0",
     "typescript": "^5.9"

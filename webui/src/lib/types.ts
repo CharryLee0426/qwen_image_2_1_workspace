@@ -21,6 +21,18 @@ export type GenerationInput = {
   resolution: number;
 };
 
+export type Project = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  prompt: string;
+  negativePrompt: string;
+  quality: "Fast" | "Standard" | "High";
+  ratio: "1:1" | "4:3" | "3:4" | "16:9";
+  seed: string;
+  references: ImageFile[];
+};
+
 export type Job = GenerationInput & {
   id: string;
   promptId: string;
@@ -32,6 +44,7 @@ export type Job = GenerationInput & {
   images: ImageFile[];
   error?: string;
   duration?: number;
+  completedAt?: string;
 };
 
 export function imageUrl(image: ImageFile, download = false, preview = false) {

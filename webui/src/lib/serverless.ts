@@ -1,6 +1,7 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { BlobPreconditionFailedError, get, issueSignedToken, presignUrl, put } from "@vercel/blob";
 import type { ImageFile, Job } from "./types";
+import { notifyCompletedJob } from "./push";
 
 const INDEX_PATH = "studio/jobs-v1.json";
 const RUNPOD_ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID;
@@ -39,15 +40,15 @@ async function readIndex(): Promise<Index> {
 async function changeIndex(change: (jobs: Job[]) => Job[]) {
   for (let attempt = 0; attempt < 8; attempt++) {
     const current = await readIndex();
-    const jobs = change(current.jobs).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 100);
+    const jobs = change(current.jobs).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     try {
       await put(INDEX_PATH, JSON.stringify({ jobs }), {
         access: "private", contentType: "application/json", cacheControlMaxAge: 60,
-        ...(current.etag ? { ifMatch: current.etag } : {}),
+        ...(current.etag ? { ifMatch: current.etag } : { allowOverwrite: false }),
       });
       return;
     } catch (error) {
-      if (!(error instanceof BlobPreconditionFailedError)) throw error;
+      if (!(error instanceof BlobPreconditionFailedError) && (current.etag || !(await readIndex()).etag)) throw error;
       await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
     }
   }
@@ -65,6 +66,13 @@ export async function saveServerlessJob(job: Job) {
     const incomingActive = ["queued", "running"].includes(job.status);
     const existingFinished = existing && ["completed", "failed", "cancelled"].includes(existing.status);
     return [incomingActive && existingFinished ? existing : job, ...jobs.filter((item) => item.id !== job.id)];
+  });
+}
+
+export async function reserveServerlessJob(job: Job) {
+  await changeIndex((jobs) => {
+    if (jobs.some((item) => item.id === job.id)) throw new Error("This picture has already been generated. Start a new project for another picture.");
+    return [job, ...jobs];
   });
 }
 
@@ -131,7 +139,7 @@ export function applyRunpodStatus(job: Job, value: Record<string, unknown>): Job
       return typeof value.blobPath === "string" && typeof value.previewPath === "string" &&
         value.blobPath.startsWith(`studio/outputs/${job.id}/`) && value.previewPath.startsWith(`studio/outputs/${job.id}/`);
     });
-    if (images.length) return { ...job, status: "completed", phase: "Complete", progress: 100, images, duration: typeof value.executionTime === "number" ? value.executionTime / 1000 : job.duration };
+    if (images.length) return { ...job, status: "completed", phase: "Complete", progress: 100, images, completedAt: new Date().toISOString(), duration: typeof value.executionTime === "number" ? value.executionTime / 1000 : job.duration };
   }
   if (["FAILED", "TIMED_OUT", "COMPLETED"].includes(String(status))) return { ...job, status: "failed", phase: "Failed", error: String(output.error || value.error || "Generation failed."), progress: job.progress };
   if (status === "CANCELLED") return { ...job, status: "cancelled", phase: "Cancelled" };
@@ -140,10 +148,15 @@ export function applyRunpodStatus(job: Job, value: Record<string, unknown>): Job
 }
 
 export async function refreshServerlessJob(job: Job) {
-  if (!job.promptId || ["completed", "failed", "cancelled"].includes(job.status)) return job;
+  if (job.status === "completed") {
+    await notifyCompletedJob(job);
+    return job;
+  }
+  if (!job.promptId || ["failed", "cancelled"].includes(job.status)) return job;
   const value = await (await runpodFetch(`status/${encodeURIComponent(job.promptId)}`)).json() as Record<string, unknown>;
   const refreshed = applyRunpodStatus(job, value);
   if (refreshed.status !== job.status || refreshed.images.length !== job.images.length) await saveServerlessJob(refreshed);
+  if (refreshed.status === "completed") await notifyCompletedJob(refreshed);
   return refreshed;
 }
 

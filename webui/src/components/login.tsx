@@ -12,7 +12,7 @@ export default function Login() {
       const response = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Sign in failed.");
-      location.replace("/");
+      location.replace(`${location.pathname}${location.search}`);
     } catch (e) { setError((e as Error).message); setBusy(false); }
   }
   return <main className="login-shell"><form className="login-card" onSubmit={submit}>
